@@ -1,25 +1,39 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { PureComponent } from 'react';
+import subscribe from './socket-listener';
+import { IMessage } from './interfaces';
 
-class App extends Component {
+interface IAppState {
+  log: IMessage[];
+  maxEvents: number;
+}
+
+class App extends PureComponent<{}, IAppState> {
+  state: IAppState = {
+    log: [],
+    maxEvents: 100,
+  };
+
+  addEventToLog(event: IMessage) {
+    const newLog = Array.from(this.state.log);
+    newLog.unshift(event);
+    newLog.slice(0, this.state.maxEvents);
+    this.setState({ log: newLog });
+  }
+  componentDidMount() {
+    const obs = subscribe();
+    obs.subscribe((event) => {
+      console.log(event);
+      this.addEventToLog(event);
+    });
+  }
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        {this.state.log.map((item: IMessage) => (
+          <div className="message" key={item._id}>
+            {JSON.stringify(item)}
+          </div>
+        ))}
       </div>
     );
   }
