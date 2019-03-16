@@ -4,6 +4,12 @@ Cyberphysical systems class task: visualizing boat movements in a graphical inte
 
 This implementation is a web app based on Create React App as well as Python 3, Flask and Socket.IO on the backend.
 
+## Supported operating systems
+
+- Raspbian
+- Linux
+- macOS
+
 ## Prerequisites
 
 - Node.js https://nodejs.org
