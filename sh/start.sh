@@ -3,6 +3,13 @@ set -e
 if ! command -v pipenv >/dev/null 2>/dev/null; then
   echo "pipenv not found"
   echo "install it with python3 -mpip install --user pipenv"
+  echo "note: if you don't have pip, install it with sudo apt install python3-pip on Raspbian"
+  exit 1
+fi
+
+if ! command -v node >/dev/null 2>/dev/null; then
+  echo "node.js not found"
+  echo "install it: https://nodejs.org"
   exit 1
 fi
 
@@ -12,6 +19,7 @@ if ! command -v yarn >/dev/null 2>/dev/null; then
   echo "or: npm install -g yarn"
   exit 1
 fi
+
 
 export FLASK_APP=./server/main.py
 export FLASK_ENV=${FLASK_ENV:-development}
