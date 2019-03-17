@@ -20,9 +20,10 @@ class App extends PureComponent<{}, IAppState> {
     this.setState({ log: newLog });
   }
   componentDidMount() {
+    console.log('App mounted');
     const obs = subscribe();
     obs.subscribe((event) => {
-      console.log(event);
+      console.log('Event', event);
       this.addEventToLog(event);
     });
   }
