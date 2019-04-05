@@ -10,6 +10,7 @@ flask = "*"
 flask-socketio = "*"
 rx = "*"
 pyserial = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.6"
