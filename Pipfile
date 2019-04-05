@@ -8,9 +8,12 @@ verify_ssl = true
 [packages]
 flask = "*"
 flask-socketio = "*"
-rx = "*"
+rx = "==3.0.0-a2"
 pyserial = "*"
 pyyaml = "*"
 
 [requires]
 python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
