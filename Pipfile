@@ -11,6 +11,7 @@ flask-socketio = "*"
 rx = "==3.0.0-a2"
 pyserial = "*"
 pyyaml = "*"
+eventlet = "*"
 
 [requires]
 python_version = "3.6"
