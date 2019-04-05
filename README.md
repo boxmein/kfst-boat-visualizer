@@ -20,9 +20,26 @@ This implementation is a web app based on Create React App as well as Python 3, 
 
 ## Usage
 
+First, make sure the configuration is correct in config.yml
+
 Use the following script to start up everything in developer mode:
 
     ./sh/start.sh
+
+## Configuration
+
+The configuration file looks like this:
+
+```yaml
+serial_device: 
+  file: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AH00QNMG-if00-port0
+  baudrate: 57600
+
+```
+
+All keys are mandatory.
+
+The serial device is expected to exist and be readable to the user.
 
 ## WebSocket message types
 

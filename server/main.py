@@ -1,6 +1,9 @@
+from threading import Thread
+
 from flask import Flask
 from flask_socketio import SocketIO
-import rx
+
+from serial_reader import reader
 
 ##
 ## Web app setup
@@ -18,26 +21,35 @@ def indexpage():
 ## Background task: serial-to-SIO bridge
 ##
 
-id_ticker = 0
+def serial_listener(sio):
+    id_ticker = 0
+    def tick(message_type, packet_raw_data, additional_data={}):
+        nonlocal id_ticker
+        print("+ serial message received")
+        id_ticker += 1
 
-def serial_listener():
-    global id_ticker
-    print("+ bg task started")
-    while True:
-        sio.emit('message', {
+        message = {
             '_id': id_ticker,
-            'type': 'hello'
-        })
-        id_ticker = id_ticker + 1
-        print("Hello emitted")
-        sio.sleep(1)
+            'type': message_type,
+            'raw_data': packet_raw_data.hex(),
+            'contents': additional_data
+        }
+
+        sio.emit('message', message)
+
+    print("+ subscribing to serial")
+    reader(tick)
+
+
+serial_thread = Thread(target=serial_listener, args=(sio,))
+serial_thread.daemon = True
 
 ##
 ## Entry point
 ##
 
-print("+ starting bg task")
-sio.start_background_task(serial_listener)
-
 if __name__ == '__main__':
+    print("+ starting bg task")
+    serial_thread.start()
+    print("+ starting app")
     sio.run(app)

@@ -1,0 +1,3 @@
+serial_device: 
+  file: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AH00QNMG-if00-port0
+  baudrate: 57600
