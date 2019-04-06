@@ -32,25 +32,35 @@ the right serial device. The default baud rate is 57200.
 non-root read access to it. To check that, do `ls -l /dev/ttyX` where the X is the right serial device.
 The permissions should allow your user or group to read the serial device.
 
-**Fourth**, make sure you have the prerequisites installed.
+### Starting in Production
 
-**Lastly**: the following script to start up everything in developer mode:
+To start in production, run the following command:
+
+    ./deployment/run.sh
+
+### Starting Developer Mode
+
+A few more things have to be checked:
+
+**First**, make sure you have the prerequisites installed.
+
+**Second**: use the following script to start up everything in developer mode:
 
     ./sh/start.sh
 
-### Starting only backend
+#### Starting only backend
 
 To start only the websocket server backend and serial listener:
 
     ./sh/start-only-backend.sh
 
-### Starting only frontend
+#### Starting only frontend
 
 To only start the static web app in developer mode:
 
     ./sh/start-only-frontend.sh
 
-### Testing Mode
+#### Testing Mode
 
 The backend includes a "no-serial-listener" mode that disables the serial listener,
 and instead feeds random packets to the frontend 5 times per second.
@@ -59,7 +69,7 @@ To start that mode:
 
     ./sh/start-only-backend.sh --test
 
-### When you do still need root access to read the serial device
+#### When you do still need root access to read the serial device
 
 Then use the following command to run the backend:
 

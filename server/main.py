@@ -19,7 +19,7 @@ parser.add_argument("--test", help="Enable testing mode (no serial port setup ne
 ## Web app setup
 ##
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='static')
 app.config['SECRET_KEY'] = 'hunter2'
 sio = SocketIO(app)
 
