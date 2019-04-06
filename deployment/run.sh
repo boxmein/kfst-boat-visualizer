@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -x
 
 # Check and warn about not running on Raspberry Pi
 IS_RASPBIAN=$([[ $(lsb_release -a | grep "Distributor") == *Raspbian* ]])
