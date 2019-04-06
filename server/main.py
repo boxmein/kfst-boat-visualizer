@@ -33,9 +33,12 @@ def indexpage():
 ##
 
 def serial_listener(sio, q):
+    print("+ starting serial-emitter-thread")
     while True:
         try:
+            print("serial-listener: message queue is", q.qsize())
             message = q.get(block=False)
+            print(">>>> emitting >>>>", message['raw_data'])
             sio.emit('message', message)
             sio.sleep(0.02)
         except Exception as e:
@@ -58,7 +61,6 @@ def serial_thread(q):
             'raw_data': packet_raw_data.hex(),
             'parsed': parsed
         }
-	print(">>>> emitting >>>>", packet_raw_data.hex())
         q.put(message)
 
     print("+ subscribing to serial")
@@ -137,7 +139,7 @@ def test_serial_listener(sio):
         sampled_message = sample(messages, 1)[0]
         msg = { **sampled_message, '_id': id_ticker }
         id_ticker += 1
-        print(">>>> emitting >>>> ", message)
+        print(">>>> emitting >>>> ", id_ticker )
         sio.emit('message', msg)
         sio.sleep(0.15)
         
