@@ -58,6 +58,7 @@ def serial_thread(q):
             'raw_data': packet_raw_data.hex(),
             'parsed': parsed
         }
+	print(">>>> emitting >>>>", packet_raw_data.hex())
         q.put(message)
 
     print("+ subscribing to serial")
@@ -136,6 +137,7 @@ def test_serial_listener(sio):
         sampled_message = sample(messages, 1)[0]
         msg = { **sampled_message, '_id': id_ticker }
         id_ticker += 1
+        print(">>>> emitting >>>> ", message)
         sio.emit('message', msg)
         sio.sleep(0.15)
         
