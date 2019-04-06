@@ -32,9 +32,19 @@ the right serial device. The default baud rate is 57200.
 non-root read access to it. To check that, do `ls -l /dev/ttyX` where the X is the right serial device.
 The permissions should allow your user or group to read the serial device.
 
-**Fourth**, make sure you have the prerequisites installed.
+### Starting in Production
 
-**Lastly**: the following script to start up everything in developer mode:
+To start in production, run the following command:
+
+    ./deployment/run.sh
+
+### Starting Developer Mode
+
+A few more things have to be checked:
+
+**First**, make sure you have the prerequisites installed.
+
+**Second**: use the following script to start up everything in developer mode:
 
     ./sh/start.sh
 
