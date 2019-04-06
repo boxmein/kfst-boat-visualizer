@@ -36,7 +36,6 @@ def serial_listener(sio, q):
     print("+ starting serial-emitter-thread")
     while True:
         try:
-            print("serial-listener: message queue is", q.qsize())
             message = q.get(block=False)
             print(">>>> emitting >>>>", message['raw_data'])
             sio.emit('message', message)
