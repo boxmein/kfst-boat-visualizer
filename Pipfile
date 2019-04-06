@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 flask = "*"
 flask-socketio = "*"
-rx = "==3.0.0-a2"
 pyserial = "*"
 pyyaml = "*"
 eventlet = "*"
