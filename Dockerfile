@@ -1,8 +1,6 @@
 FROM debian
-RUN apt-get -y install python3 python3-pip
-RUN python3 -mpip install pipenv
+RUN apt-get update && apt-get -y install python3 python3-pip && pip3 install pipenv
 ADD server /server
-ADD frontend/dist/ /server/static/
-ADD deployment/start.sh /server/start.sh
-CMD ["/server/start.sh"]
-
+ADD frontend/build/ /server/static/
+ADD deployment/run.sh /server/run.sh
+CMD ["/server/run.sh"]
