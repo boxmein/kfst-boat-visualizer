@@ -15,8 +15,6 @@ def decode_state_msg(raw_packet):
     return None
 
   unpacked = unpack('<ccfffffcc', raw_packet)
- 
-  print("- packet parser: decode_state_msg: check this out", unpacked)
 
   pkt = Packet()
   pkt.message_type = 0x01
@@ -32,6 +30,8 @@ def decode_state_msg(raw_packet):
 
   pkt.parsed = state_msg
 
+  return pkt
+
 # 
 # Decode 0x02 messages: State Request
 def decode_staterq_msg(raw_packet):
@@ -45,8 +45,6 @@ def decode_staterq_msg(raw_packet):
   
   unpacked = unpack('<ccccc', raw_packet)
  
-  print("- packet parser: decode_staterq_msg: check this out", unpacked)
-
   pkt = Packet()
   pkt.message_type = 0x02
   pkt.raw = raw_packet
@@ -71,8 +69,7 @@ def decode_control_msg(raw_packet):
     return None
   
   unpacked = unpack('<ccccfcc', raw_packet)
-  print("- packet parser: decode_control_msg: check this out", unpacked)
-  
+
   pkt = Packet()
   pkt.message_type = 0x03
   pkt.raw = raw_packet

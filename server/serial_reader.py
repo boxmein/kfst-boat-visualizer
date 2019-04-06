@@ -50,15 +50,15 @@ def process_new_data(buffer, emit_packet):
 
   if emit_packet is None:
     return
-  print("> serial reader: total buffer is", buffer.hex())
+
   frames = split_into_frames(buffer)
-  print("> serial reader: frames are", frames)
   packets = parse_packets(frames)
-  print("> serial reader: packets are", packets)
   emit_packets(packets, emit_packet)
 
 # 
 # Return how many bytes to take from the data buffer to compose a frame.
+# Return -1 to count until the next 0xAA with this frame.
+#
 def get_frame_length(frame_type):
   if frame_type is None:
     return -1
@@ -82,8 +82,6 @@ def split_into_frames(buffer):
 
   # Find all frames in the data stream
   while len(buffer) > 0:
-    print("> serial reader: finding a new frame")
-    print("> serial reader: from this haystack", buffer.hex())
     # Find the start of a frame
     while start < len(buffer) and (buffer[start] != 0xAA): 
       start += 1
@@ -99,13 +97,13 @@ def split_into_frames(buffer):
 
     # Figure out the length of the frame
     frame_length = get_frame_length(buffer[type_idx])
-    print("> serial reader: frame length is", frame_length)
 
     # Special case: frame_length -1 specifies that frame length is not known ahead of time
     if frame_length != -1:
       # use predefined knowledge to find the end of the frame
-      if start + frame_length >= len(buffer): 
+      if start + frame_length > len(buffer): 
         print("> serial reader: frame data not yet fully collected in buffer")
+        print("> serial reader: frame data should be ", frame_length, " but is ", len(buffer) - start)
         return frames
       end = start + frame_length
     else:
@@ -116,7 +114,6 @@ def split_into_frames(buffer):
 
       if end == len(buffer):
         return frames
-      print("> serial reader: found end of frame", end)
 
     raw_frame = buffer[start:end]
     frames.append(raw_frame)
@@ -125,15 +122,12 @@ def split_into_frames(buffer):
     del buffer[0:end]
     # Start again from the top
     start = 0
-    print("> serial reader: the found frame is", raw_frame.hex())
   
   return frames
 
 
 # For each packet in read_packets, emits it to Socket.IO
 def emit_packets(packets, emit_packet):
-  print("> serial reader: trying to emit packets from ", packets)
-
   if packets is None:
     return
   
@@ -141,7 +135,6 @@ def emit_packets(packets, emit_packet):
     return
 
   for packet in packets:
-    print("> serial reader: emitting event for packet", packet)
     emit_packet(packet.message_type, packet.raw, packet.parsed)
 
 def reader(emit_packet):

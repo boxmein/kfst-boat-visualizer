@@ -1,0 +1,15 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.column {
+  width: 50%;
+  overflow: hidden;
+  margin-left: 25px;
+}
+
+.message, .message_serial {
+  white-space: nowrap;
+}

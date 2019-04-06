@@ -5,8 +5,8 @@ const ENDPOINT = 'localhost:5000';
 
 function validateMessage(msg: any): msg is IMessage {
     return typeof msg === 'object' &&
-            typeof msg._id === 'number' &&
-            typeof msg.type === 'string';
+           typeof msg._id === 'number' &&
+           typeof msg.type === 'string';
 }
 
 export default function subscribe(): Observable<IMessage> {
