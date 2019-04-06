@@ -15,6 +15,16 @@ if [[ $INSTALL_AUTOMATICALLY ]]; then
   echo "You may be asked for sudo password."
 fi
 
+if ! command -v docker >/dev/null 2>/dev/null; then
+  if [[ $INSTALL_AUTOMATICALLY ]]; then
+    curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+    sudo usermod -aG docker $(whoami)
+  else
+    echo "Docker not installed! Install docker please."
+    echo "https://www.docker.com/"
+  fi
+fi
+
 if ! command -v pipenv >/dev/null 2>/dev/null; then
   if [[ $INSTALL_AUTOMATICALLY ]]; then
     sudo apt-get -y install python3 python3-pip
