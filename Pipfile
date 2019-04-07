@@ -11,6 +11,7 @@ flask-socketio = "*"
 pyserial = "*"
 pyyaml = "*"
 eventlet = "*"
+wheel = "*"
 
 [requires]
 python_version = "3"
