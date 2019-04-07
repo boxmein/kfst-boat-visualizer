@@ -11,4 +11,4 @@ else
   echo "NOTE: make sure this command is run in the top folder of the project!"
 fi
 
-exec docker build -t kfst-boat-visualizer .
+exec docker build -t boxmein/kfst-boat-visualizer .
