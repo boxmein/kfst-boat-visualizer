@@ -25,6 +25,7 @@ interface IAppState {
     offline: boolean;
     lastLocation?: ILastLocation;
     points: ILastLocation[];
+    status?: string | undefined;
 
 }
 
@@ -36,11 +37,14 @@ function messageIsStatus(message: IMessage): message is IStatusMessage {
     return message && message.type === 'status';
 }
 
+
 class App extends PureComponent<{}, IAppState> {
+    statusTimeout?: number | null;
     state: IAppState = {
         log: [],
         offline: false,
         points: [],
+        status: undefined,
     };
 
     offlineTimeout?: number | null;
@@ -53,6 +57,22 @@ class App extends PureComponent<{}, IAppState> {
         this.offlineTimeout = window.setTimeout(() => {
             this.setState({offline: true});
         }, 5000);
+    }
+
+    displayStatusMessage() {
+
+
+        if (this.statusTimeout) {
+            window.clearTimeout(this.statusTimeout);
+        }
+
+        this.statusTimeout = window.setTimeout(() => {
+            this.setState({
+                status: undefined,
+            })
+        }, 10000);
+
+
     }
 
     componentDidMount() {
@@ -73,13 +93,20 @@ class App extends PureComponent<{}, IAppState> {
             if (message.msg !== 1) {
                 return;
             }
+
+
             this.setState({
                 lastLocation: message.parsed as ILastLocation
             });
             console.log('[App] Location update:', { x: (message.parsed as ILastLocation).x, y: (message.parsed as ILastLocation).y });
         });
-
-
+        obs.subscribe((message: IMessage) => {
+            if (messageIsStatus(message)) {
+                this.setState({
+                    status: message.text,
+                });
+            }
+        });
 
         arrayObs.subscribe((eventLog) => {
             this.resetOffline();
@@ -121,8 +148,11 @@ class App extends PureComponent<{}, IAppState> {
         const last = this.state.lastLocation;
         const points = this.state.points;
 
+
         return (
             <div className="App">
+
+
                 <div className="header row">
                     {this.state.offline && 'Offline!'}
                 </div>
@@ -131,9 +161,13 @@ class App extends PureComponent<{}, IAppState> {
 
 
                     <div className="left column">
-                        <div className="legend column">
+                        <div className={"popup" + (this.state.status ? " show" : '')} id="popup">
+                            Current status: {this.state.status}
+                        </div>
+                        <div className="legend row">
                             <img src={logo} className="logo" alt=""/>
-                            Scale of this model is <b> 1:50</b>
+                            This model was made by CPSE students<br/>
+                            Tartu 2019
                         </div>
                         <div className="message_log">
                             <h2>Raw Packets</h2>
@@ -147,8 +181,16 @@ class App extends PureComponent<{}, IAppState> {
                     <div className="right column">
                         <div className="visu">
 
+                            <BoatCanvas/>
                             <div
-                                className="info row">x:{last ? last.x.toFixed(1) : ''} y:{last ? last.y.toFixed(1) : ''} phi:{last ? last.phi.toFixed(1) : ''}</div>
+                                className="info column">
+                                <h4>Current position</h4>
+                                <div className="coords row">
+                                    <div className="coord">x:{last ? last.x.toFixed(1) : ''}</div>
+                                    <div className="coord"> y:{last ? last.y.toFixed(1) : ''}</div>
+                                </div>
+                                <div> phi:{last ? last.phi.toFixed(1) : ''}</div>
+                            </div>
                             <BoatCanvas points={this.state.points} lastLocation={this.state.lastLocation} />
                         </div>
 
