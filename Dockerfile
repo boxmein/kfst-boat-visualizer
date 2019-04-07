@@ -1,6 +1,10 @@
 FROM debian
 RUN apt-get update && apt-get -y install python3 python3-pip && pip3 install pipenv
-ADD server /server
-ADD frontend/build/ /server/static/
-ADD deployment/start-inside-docker.sh /server/start.sh
-CMD ["/server/start.sh"]
+ADD ./config.yml /srv/config.yml
+ADD ./Pipfile /srv/Pipfile
+ADD ./Pipfile.lock /srv/Pipfile.lock
+ADD ./server/ /srv/server/
+ADD frontend/build/ /srv/server/static/
+ADD deployment/start-in-docker.sh /srv/start.sh
+WORKDIR /srv/
+CMD ["./start.sh"]

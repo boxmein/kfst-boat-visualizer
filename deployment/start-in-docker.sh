@@ -1,4 +1,7 @@
 #!/bin/bash
 # The script to run in Docker so it starts properly
-pipenv run /server/main.py
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+pipenv sync
+pipenv run python3 server/main.py
 
