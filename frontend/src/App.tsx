@@ -2,12 +2,10 @@ import React, {PureComponent} from 'react';
 import subscribe from './socket-listener';
 import {IMessage, ISerialMessage, IStatusMessage} from './interfaces';
 import logo from './Taltech.png';
-
-
+import { BoatCanvas } from "./BoatCanvas";
 import {scan, filter, map} from 'rxjs/operators';
 
 import './App.css';
-import {BoatCanvas} from "./BoatCanvas";
 
 const MAX_EVENTS = 100;
 const zoom = 4;
@@ -83,6 +81,11 @@ class App extends PureComponent<{}, IAppState> {
             scan((acc: IMessage[], current: IMessage): IMessage[] => [...acc.slice(acc.length > MAX_EVENTS ? 1 : 0), current], [] as IMessage[])
         );
 
+        const positionMessages$ = arrayObs.pipe(
+            map((messages: IMessage[]): ISerialMessage[] => messages.filter(message => messageIsSerial(message) && message.msg === 1) as ISerialMessage[]),
+            map((messages: ISerialMessage[]): ILastLocation[] => messages.map(message => message.parsed as ILastLocation))
+        );
+
         obs.subscribe((message: IMessage) => {
             if (!message || typeof message !== "object") {
                 return;
@@ -93,12 +96,9 @@ class App extends PureComponent<{}, IAppState> {
             if (message.msg !== 1) {
                 return;
             }
-
-
-            this.setState({
-                lastLocation: message.parsed as ILastLocation
-            });
-            console.log('[App] Location update:', { x: (message.parsed as ILastLocation).x, y: (message.parsed as ILastLocation).y });
+            const lastLocation = message.parsed as ILastLocation;
+            this.setState({ lastLocation });
+            console.log('[App] Location update:', lastLocation);
         });
         obs.subscribe((message: IMessage) => {
             if (messageIsStatus(message)) {
@@ -110,37 +110,11 @@ class App extends PureComponent<{}, IAppState> {
 
         arrayObs.subscribe((eventLog) => {
             this.resetOffline();
-            const points = eventLog
-                    .filter((message: IMessage) => messageIsSerial(message) && message.msg === 1)
-                    .map((message) => (message as ISerialMessage).parsed as ILastLocation)
-                // .map((message) => {
-                //     if (!this.state.lastLocation) {
-                //         return message;
-                //     }
-                //     const init_x = message.x;
-                //     const init_y = message.y;
-                //     const stp_x = message.sp_x;
-                //     const stp_y = message.sp_y;
-                //     const newCoords = {
-                //         ...message,
-                //         x: (init_x - this.state.lastLocation.x) * zoom + 400,
-                //         y: (init_y - this.state.lastLocation.y) * zoom + 400,
-                //         sp_x: 0,
-                //         sp_y: 0,
-                //
-                //     }
-                //     if (stp_x && stp_y && this.state.lastLocation.sp_x && this.state.lastLocation.sp_y) {
-                //         newCoords.sp_x = (stp_x - this.state.lastLocation.sp_x) * zoom + 400;
-                //         newCoords.sp_y = (stp_y - this.state.lastLocation.sp_y) * zoom + 400;
-                //     }
-                //     return newCoords;
-                //
-                //
-                // })
+            this.setState({ log: eventLog });
+        });
 
-            ;
-            this.setState({log: eventLog, points});
-
+        positionMessages$.subscribe((points) => {
+            this.setState({ points });
         });
     }
 

@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import * as THREE from 'three';
 import { BufferGeometry } from 'three';
-import { runInThisContext } from 'vm';
 
 const BOAT_CANVAS_WIDTH = 800;
 const BOAT_CANVAS_HEIGHT = 800;
 
 const MAX_POINTS = 500;
+
+const CAMERA_Y = 30;
 
 interface IBoatCanvasProps {
     lastLocation?: {
@@ -39,6 +40,8 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
     points: THREE.Points | null = null;
     /** Holds the boat */
     boat: THREE.Mesh | null = null;
+    /** Holds the desired location */
+    desiredLocation: THREE.Mesh | null = null;
 
     constructor(props: IBoatCanvasProps) {
         super(props);
@@ -72,8 +75,8 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
      * per second.
      * @param points An array of points to place in the point cloud
      */
-    updatePoints(points: { x: number; y: number }[]): void {
-        if (!this.points || !points || points.length === 0) {
+    updatePoints(lastPosition: { x: number, y: number }, points: { x: number; y: number }[]): void {
+        if (!lastPosition || !this.points || !points || points.length === 0) {
             return;
         }
         const geometry = this.points.geometry as BufferGeometry;
@@ -88,13 +91,17 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         // [ x, y, z, x, y, z, x, y, z, ... ]
         const positions = geometry.attributes.position.array as Float32Array;
 
+        // Place points relative to origin (origin will be boat)
         for (let i = 0; i < renderedPoints; i += 1) {
             const { x, y } = points[i];
             // Map (x,y) points to (x,z) surface
-            positions[i] = x;
+            positions[i] = x - lastPosition.x;
             positions[i + 1] = 0;
-            positions[i + 2] = y;
+            positions[i + 2] = y - lastPosition.y;
         }
+
+        // Set origin to boat
+        this.points.position.set(lastPosition.x, 0, lastPosition.y);
 
         // Mark the object as dirty
         (geometry.attributes.position as any).needsUpdate = true;
@@ -109,15 +116,23 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
             return;
         }
         // Map (x, y) positions to (x,z) surface
-        this.camera.position.set(lastPosition.x, 20, lastPosition.y);
+        this.camera.position.set(lastPosition.x, CAMERA_Y, lastPosition.y);
         // this.camera.lookAt(lastPosition.x, 0, lastPosition.y);
     }
 
-    updateBoat(lastPosition: { x: number, y: number }): void {
+    updateBoat(lastPosition: { x: number, y: number, phi: number }): void {
         if (!this.boat) {
             return;
         }
         this.boat.position.set(lastPosition.x, 0, lastPosition.y);
+        this.boat.rotation.set(0, lastPosition.phi, 0);
+    }
+    
+    updateDesiredLocation(x: number, y: number): void {
+        if (!this.desiredLocation) {
+            return;
+        }
+        this.desiredLocation.position.set(x, 0, y);
     }
 
     /**
@@ -146,7 +161,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         this.scene.add(this.points);
 
         // Set up the camera
-        this.camera.position.y = 100;
+        this.camera.position.y = CAMERA_Y;
         this.camera.lookAt(0, 0, 0);
 
         // Set up the boat
@@ -154,9 +169,15 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         const boatMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
         this.boat = new THREE.Mesh( boat, boatMaterial );
         this.scene.add(this.boat);
- 
+
+        // Set up the "desired location"
+        const desiredLocation = new THREE.BoxGeometry( 1, 1, 1 );
+        const desiredLocationMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+        this.desiredLocation = new THREE.Mesh( desiredLocation, desiredLocationMaterial );
+        this.scene.add(this.desiredLocation);
+
         // Set up a grid
-        const grid = new THREE.GridHelper(1000, 1000);
+        const grid = new THREE.GridHelper(1000, 1000 / 4);
         this.scene.add(grid);
 
         // Set up x-y-z axis lines
@@ -170,14 +191,19 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
 
     componentDidUpdate(prevProps: IBoatCanvasProps): void {
         // If the points array has changed, update the point cloud to match
-        if (this.props.points && this.props.points !== prevProps.points) {
-            this.updatePoints(this.props.points);
+        const lastLocation = this.props.lastLocation;
+        if (lastLocation && this.props.points && this.props.points !== prevProps.points) {
+            this.updatePoints(lastLocation, this.props.points);
         }
 
         // If the last location has changed, update the point cloud to match
         if (this.props.lastLocation && this.props.lastLocation !== prevProps.lastLocation) {
             this.updateCamera(this.props.lastLocation);
             this.updateBoat(this.props.lastLocation);
+
+            if (this.props.lastLocation.sp_x && this.props.lastLocation.sp_y) {
+                this.updateDesiredLocation(this.props.lastLocation.sp_x, this.props.lastLocation.sp_y);
+            }
         }
     }
 }
