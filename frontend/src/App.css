@@ -114,25 +114,7 @@ h4{
   margin-bottom: 10px;
 }
 /*225deg*/
-.x{
-  width: 100%;
-  height: 2px;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 50%;
-  background: black;
-
-}
-.y{
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  bottom: 0;
-  right: 0;
-  width: 2px;
-  background: #000;
-
+span{
+  font-weight: 600;
+  margin-left: 3px;
 }

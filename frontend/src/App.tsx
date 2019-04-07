@@ -81,7 +81,7 @@ class App extends PureComponent<{}, IAppState> {
     componentDidMount() {
         console.log('App mounted');
         const obs = subscribe();
-
+        this.resetOffline();
         const arrayObs = obs.pipe(
             scan((acc: IMessage[], current: IMessage): IMessage[] => [...acc.slice(acc.length > MAX_EVENTS ? 1 : 0), current], [] as IMessage[])
         );
@@ -145,7 +145,15 @@ class App extends PureComponent<{}, IAppState> {
 
         });
     }
-
+     statusDisplay(){
+        if(this.state.status){
+            return this.state.status
+        }
+        if(this.state.offline){
+            return "offline"
+        }
+        return '';
+    }
     render() {
         const last = this.state.lastLocation;
         const points = this.state.points;
@@ -154,17 +162,13 @@ class App extends PureComponent<{}, IAppState> {
         return (
             <div className="App">
 
-
-                <div className="header row">
-                    {this.state.offline && 'Offline!'}
-                </div>
-
                 <div className="container row">
 
 
                     <div className="left column">
-                        <div className={"popup" + (this.state.status ? " show" : '')} id="popup">
-                            Current status: {this.state.status}
+                        <div className={"popup" +
+                        (this.state.status || this.state.offline ? " show" : '')} id="popup">
+                            Current status: {this.statusDisplay()}
                         </div>
                         <div className="legend row">
                             <img src={logo} className="logo" alt=""/>
@@ -188,8 +192,12 @@ class App extends PureComponent<{}, IAppState> {
                                 className="info column">
                                 <h4>Current position</h4>
                                 <div className="coords row">
-                                    <div className="coord">x:{last ? last.x.toFixed(1) : ''}</div>
-                                    <div className="coord"> y:{last ? last.y.toFixed(1) : ''}</div>
+                                    <div className="coord">x:
+                                        <span>{last ? last.x.toFixed(1) : ''}</span>
+                                    </div>
+                                    <div className="coord">
+                                        <span>y:{last ? last.y.toFixed(1) : ''}</span>
+                                    </div>
                                 </div>
                                 <div> phi:{last ? last.phi.toFixed(1) : ''}</div>
                             </div>
