@@ -13,7 +13,7 @@ export default function subscribe(): Observable<IMessage> {
     const sock = socketIOClient(ENDPOINT);
     const obs = new Observable<IMessage>((subject) => {
         sock.on('message', (message: object) => {
-            console.log('socket-listener', message);
+            // console.log('socket-listener', message);
             if (validateMessage(message)) {
                 subject.next(message);
             }

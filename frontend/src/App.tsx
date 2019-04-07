@@ -13,14 +13,11 @@ const MAX_EVENTS = 100;
 const zoom = 4;
 
 interface ILastLocation {
-
     phi: number;
     sp_x?: number;
     sp_y?: number;
     x: number;
     y: number;
-
-
 }
 
 interface IAppState {
@@ -79,6 +76,7 @@ class App extends PureComponent<{}, IAppState> {
             this.setState({
                 lastLocation: message.parsed as ILastLocation
             });
+            console.log('[App] Location update:', { x: (message.parsed as ILastLocation).x, y: (message.parsed as ILastLocation).y });
         });
 
 
@@ -151,11 +149,7 @@ class App extends PureComponent<{}, IAppState> {
 
                             <div
                                 className="info row">x:{last ? last.x.toFixed(1) : ''} y:{last ? last.y.toFixed(1) : ''} phi:{last ? last.phi.toFixed(1) : ''}</div>
-
-
-
-
-                            <BoatCanvas/>
+                            <BoatCanvas points={this.state.points} lastLocation={this.state.lastLocation} />
                         </div>
 
 
