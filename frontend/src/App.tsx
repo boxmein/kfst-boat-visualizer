@@ -13,14 +13,11 @@ const MAX_EVENTS = 100;
 const zoom = 4;
 
 interface ILastLocation {
-
     phi: number;
     sp_x?: number;
     sp_y?: number;
     x: number;
     y: number;
-
-
 }
 
 interface IAppState {
@@ -101,6 +98,7 @@ class App extends PureComponent<{}, IAppState> {
             this.setState({
                 lastLocation: message.parsed as ILastLocation
             });
+            console.log('[App] Location update:', { x: (message.parsed as ILastLocation).x, y: (message.parsed as ILastLocation).y });
         });
         obs.subscribe((message: IMessage) => {
             if (messageIsStatus(message)) {
@@ -186,8 +184,6 @@ class App extends PureComponent<{}, IAppState> {
                     </div>
                     <div className="right column">
                         <div className="visu">
-
-                            <BoatCanvas/>
                             <div
                                 className="info column">
                                 <h4>Current position</h4>
@@ -201,8 +197,7 @@ class App extends PureComponent<{}, IAppState> {
                                 </div>
                                 <div> phi:{last ? last.phi.toFixed(1) : ''}</div>
                             </div>
-
-
+                            <BoatCanvas points={this.state.points} lastLocation={this.state.lastLocation} />
                         </div>
 
 
