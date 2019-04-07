@@ -180,8 +180,6 @@ class App extends PureComponent<{}, IAppState> {
                     </div>
                     <div className="right column">
                         <div className="visu">
-
-                            <BoatCanvas/>
                             <div
                                 className="info column">
                                 <h4>Current position</h4>
