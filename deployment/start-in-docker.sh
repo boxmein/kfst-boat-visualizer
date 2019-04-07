@@ -5,5 +5,5 @@ set -e
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 pipenv sync
-pipenv run python3 server/main.py $SERIAL_DEVICE
+pipenv run python3 server/main.py -d $SERIAL_DEVICE -b $BAUDRATE
 

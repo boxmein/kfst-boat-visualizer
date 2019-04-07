@@ -29,7 +29,9 @@ def start_serial_listen(filename, baudrate, emit_packet, emit_status):
           process_new_data(buffer, emit_packet)
     except Exception as e:
       emit_status('Error connecting to serial device ' + filename)
-      time.sleep(1)
+      print("> serial reader: serial connection failed")
+      print(e)
+      time.sleep(3)
 
 def parse_packets(frames):
   if frames is None:
