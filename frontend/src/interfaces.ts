@@ -11,4 +11,11 @@ export interface ISerialMessage {
     parsed: object;
 }
 
-export type IMessage = IPingMessage | ISerialMessage;
+export interface IStatusMessage {
+    _id: number;
+    type: 'status';
+    text: string;
+    details?: string;
+}
+
+export type IMessage = IPingMessage | ISerialMessage | IStatusMessage;

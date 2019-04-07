@@ -5,7 +5,7 @@ from packet_parser import parse_packet
 
 #
 # Opens a serial port and starts listening to incoming data.
-def start_serial_listen(filename, baudrate, emit_packet): 
+def start_serial_listen(filename, baudrate, emit_packet, emit_status): 
   if filename is None:
     return
   
@@ -17,13 +17,19 @@ def start_serial_listen(filename, baudrate, emit_packet):
 
   print("> serial reader: starting listen", filename, baudrate)
   buffer = bytearray()
-  with serial.Serial(filename, baudrate=baudrate, timeout=0.3) as ser:
-    print("> serial ready: name = ", ser.name)
-    while True:
-      read_bytes = ser.read(128)
-      for byte in read_bytes:
-        buffer.append(byte)
-      process_new_data(buffer, emit_packet)
+  while True:
+    try:
+      with serial.Serial(filename, baudrate=baudrate, timeout=0.3) as ser:
+        emit_status('Serial connected')
+        print("> serial ready: name = ", ser.name)
+        while True:
+          read_bytes = ser.read(128)
+          for byte in read_bytes:
+            buffer.append(byte)
+          process_new_data(buffer, emit_packet)
+    except Exception as e:
+      emit_status('Error connecting to serial device ' + filename)
+      time.sleep(1)
 
 def parse_packets(frames):
   if frames is None:
@@ -136,6 +142,6 @@ def emit_packets(packets, emit_packet):
   for packet in packets:
     emit_packet(packet.message_type, packet.raw, packet.parsed)
 
-def reader(serial_device, baudrate, emit_packet):
+def reader(serial_device, baudrate, emit_packet, emit_status):
   print("> serial reader: init")
-  start_serial_listen(serial_device, baudrate, emit_packet)
+  start_serial_listen(serial_device, baudrate, emit_packet, emit_status)

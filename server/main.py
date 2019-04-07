@@ -110,8 +110,20 @@ def serial_thread(q, filename, baud):
         }
         q.put(message)
 
+    def emit_status(status, details=None):
+        nonlocal id_ticker
+        id_ticker += 1
+        message = {
+            '_id': id_ticker,
+            'type': 'status',
+            'text': status
+        }
+        if details is not None:
+            message['details'] = details
+        q.put(message)
+
     print("+ subscribing to serial")
-    reader(filename, baud, tick)
+    reader(filename, baud, tick, emit_status)
 
 ##
 ## A testing-only green thread that sends random valid messages to the Socket

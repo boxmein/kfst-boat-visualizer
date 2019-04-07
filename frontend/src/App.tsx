@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import subscribe from './socket-listener';
-import {IMessage, ISerialMessage} from './interfaces';
+import {IMessage, ISerialMessage, IStatusMessage} from './interfaces';
 import logo from './Taltech.png';
 
 
@@ -27,12 +27,16 @@ interface IAppState {
     log: IMessage[];
     offline: boolean;
     lastLocation?: ILastLocation;
-    points: ILastLocation[]
+    points: ILastLocation[];
 
 }
 
 function messageIsSerial(message: IMessage): message is ISerialMessage {
     return message && message.type === 'serial';
+}
+
+function messageIsStatus(message: IMessage): message is IStatusMessage {
+    return message && message.type === 'status';
 }
 
 class App extends PureComponent<{}, IAppState> {
@@ -76,6 +80,8 @@ class App extends PureComponent<{}, IAppState> {
                 lastLocation: message.parsed as ILastLocation
             });
         });
+
+
 
         arrayObs.subscribe((eventLog) => {
             this.resetOffline();
