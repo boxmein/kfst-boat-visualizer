@@ -27,11 +27,10 @@ app = Flask(__name__, static_url_path='', static_folder='static')
 app.config['SECRET_KEY'] = 'hunter2'
 sio = SocketIO(app)
 
-# Routing
-
-@app.route("/")
+# Static folder configuration will load static files from ./static/
+@app.route('/')
 def indexpage():
-    return 'Hello, world'
+    return app.send_static_file('index.html')
 
 ##
 ## Configuration loader
@@ -49,13 +48,15 @@ def load_config_from_file():
             baudrate = conf["serial_device"]["baudrate"]
     return filename, baudrate
 
-def load_config_from_args():
-    args = parser.parse_args()
+def load_config_from_args(args):
+    filename = args.serial_device
+    baudrate = args.baudrate
+    return filename, baudrate
     
 
-def get_config():
+def get_config(args):
     f_filename, f_baud = load_config_from_file()
-    a_filename, a_baud = load_config_from_args()
+    a_filename, a_baud = load_config_from_args(args)
 
     filename = '/dev/ttyUSB0'
     baud = 57600
@@ -197,12 +198,13 @@ if __name__ == '__main__':
     print("+ starting bg tasks")
 
     q = Queue()
+    args = parser.parse_args()
 
     if args.test:
         print("+ TEST MODE: sending fake messages down the tube")
         sio.start_background_task(test_serial_listener, sio)
     else:
-        filename, baud = get_config()
+        filename, baud = get_config(args)
         serial_thread = Thread(target=serial_thread, args=(q, filename, baud))
         serial_thread.daemon = True
         serial_thread.start()

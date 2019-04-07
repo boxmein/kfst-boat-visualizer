@@ -136,6 +136,6 @@ def emit_packets(packets, emit_packet):
   for packet in packets:
     emit_packet(packet.message_type, packet.raw, packet.parsed)
 
-def reader(serial_device, file, emit_packet):
+def reader(serial_device, baudrate, emit_packet):
   print("> serial reader: init")
-  start_serial_listen(filename, baudrate, emit_packet)
+  start_serial_listen(serial_device, baudrate, emit_packet)
