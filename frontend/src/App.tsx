@@ -3,11 +3,14 @@ import subscribe from './socket-listener';
 import {IMessage, ISerialMessage} from './interfaces';
 import logo from './Taltech.png';
 
+
 import {scan, filter, map} from 'rxjs/operators';
 
 import './App.css';
+import {BoatCanvas} from "./BoatCanvas";
 
 const MAX_EVENTS = 100;
+const zoom = 4;
 
 interface ILastLocation {
 
@@ -77,8 +80,34 @@ class App extends PureComponent<{}, IAppState> {
         arrayObs.subscribe((eventLog) => {
             this.resetOffline();
             const points = eventLog
-                .filter((message: IMessage) => messageIsSerial(message) && message.msg === 1)
-                .map((message) => (message as ISerialMessage).parsed as ILastLocation);
+                    .filter((message: IMessage) => messageIsSerial(message) && message.msg === 1)
+                    .map((message) => (message as ISerialMessage).parsed as ILastLocation)
+                // .map((message) => {
+                //     if (!this.state.lastLocation) {
+                //         return message;
+                //     }
+                //     const init_x = message.x;
+                //     const init_y = message.y;
+                //     const stp_x = message.sp_x;
+                //     const stp_y = message.sp_y;
+                //     const newCoords = {
+                //         ...message,
+                //         x: (init_x - this.state.lastLocation.x) * zoom + 400,
+                //         y: (init_y - this.state.lastLocation.y) * zoom + 400,
+                //         sp_x: 0,
+                //         sp_y: 0,
+                //
+                //     }
+                //     if (stp_x && stp_y && this.state.lastLocation.sp_x && this.state.lastLocation.sp_y) {
+                //         newCoords.sp_x = (stp_x - this.state.lastLocation.sp_x) * zoom + 400;
+                //         newCoords.sp_y = (stp_y - this.state.lastLocation.sp_y) * zoom + 400;
+                //     }
+                //     return newCoords;
+                //
+                //
+                // })
+
+            ;
             this.setState({log: eventLog, points});
 
         });
@@ -86,6 +115,7 @@ class App extends PureComponent<{}, IAppState> {
 
     render() {
         const last = this.state.lastLocation;
+        const points = this.state.points;
 
         return (
             <div className="App">
@@ -115,18 +145,13 @@ class App extends PureComponent<{}, IAppState> {
 
                             <div
                                 className="info row">x:{last ? last.x.toFixed(1) : ''} y:{last ? last.y.toFixed(1) : ''} phi:{last ? last.phi.toFixed(1) : ''}</div>
-                            <div className="x"/>
-                            <div className="y"/>
 
-                            <div className="boat" style={{
-                                transform:`translate(-50%, -50%) rotate(${last?last.phi+225:225}deg)`
-                            }}>
-                            </div>
 
-                            <div className="previous">
-                                <span className="index">i</span>
-                            </div>
+
+
+                            <BoatCanvas/>
                         </div>
+
 
                         <div className="log">
                         </div>
