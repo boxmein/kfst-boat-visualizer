@@ -1,7 +1,7 @@
 import socketIOClient from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { IMessage } from './interfaces';
-const ENDPOINT = 'localhost:5000';
+const ENDPOINT = window.location.host;
 
 function validateMessage(msg: any): msg is IMessage {
     return typeof msg === 'object' &&
