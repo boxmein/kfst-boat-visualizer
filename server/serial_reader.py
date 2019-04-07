@@ -2,7 +2,6 @@ import time
 import serial
 
 from packet_parser import parse_packet
-from config import load_config
 
 #
 # Opens a serial port and starts listening to incoming data.
@@ -137,30 +136,6 @@ def emit_packets(packets, emit_packet):
   for packet in packets:
     emit_packet(packet.message_type, packet.raw, packet.parsed)
 
-def reader(emit_packet):
+def reader(serial_device, file, emit_packet):
   print("> serial reader: init")
-
-  conf = load_config()
-
-  print("config loaded: ", conf)
-
-  if not "serial_device" in conf:
-    print("serial_device section missing from configuration!")
-    print("please check readme for config example")
-    exit(1)
-
-  if not "file" in conf["serial_device"]:
-    print("file parameter missing from configuration!")
-    print("please check readme for config example")
-    exit(1)
-  
-
-  filename = conf["serial_device"]["file"]
-
-  if not "baudrate" in conf["serial_device"]:
-    print("baudrate missing from configuration, using 115200")
-    baudrate = 115200
-  else:
-    baudrate = conf["serial_device"]["baudrate"]
-  
   start_serial_listen(filename, baudrate, emit_packet)

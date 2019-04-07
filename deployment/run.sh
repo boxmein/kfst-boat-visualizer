@@ -20,5 +20,5 @@ if ! command -v docker >/dev/null 2>/dev/null; then
   fi
 fi
 
-exec docker run --privileged kfst-boat-visualizer
+exec docker run --privileged boxmein/kfst-boat-visualizer
 

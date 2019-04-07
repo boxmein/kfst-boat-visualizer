@@ -8,12 +8,16 @@ from flask import Flask
 from flask_socketio import SocketIO
 
 from serial_reader import reader
+from config import load_config
 
-
+##
+## Command line arguments
+##
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--test", help="Enable testing mode (no serial port setup needed)", action="store_true")
-
+parser.add_argument("-d", "--serial_device", help="The serial device to listen for data on", type=str)
+parser.add_argument("-b", "--baudrate", help="The baud rate of the serial device", type=int)
+parser.add_argument("-t", "--test", help="Enable testing mode (no serial port setup needed)", action="store_true")
 
 ##
 ## Web app setup
@@ -23,9 +27,52 @@ app = Flask(__name__, static_url_path='', static_folder='static')
 app.config['SECRET_KEY'] = 'hunter2'
 sio = SocketIO(app)
 
+# Routing
+
 @app.route("/")
 def indexpage():
     return 'Hello, world'
+
+##
+## Configuration loader
+##
+
+def load_config_from_file():
+    conf = load_config()
+    filename = None
+    baudrate = None
+    if "serial_device" in conf:
+        if "file" in conf["serial_device"]:
+            filename = conf["serial_device"]["file"]
+
+        if "baudrate" in conf["serial_device"]:
+            baudrate = conf["serial_device"]["baudrate"]
+    return filename, baudrate
+
+def load_config_from_args():
+    args = parser.parse_args()
+    
+
+def get_config():
+    f_filename, f_baud = load_config_from_file()
+    a_filename, a_baud = load_config_from_args()
+
+    filename = '/dev/ttyUSB0'
+    baud = 57600
+
+    if f_filename is not None:
+        filename = f_filename
+
+    if a_filename is not None:
+        filename = a_filename
+    
+    if f_baud is not None:
+        baud = f_baud
+
+    if a_baud is not None:
+        baud = a_baud
+    
+    return filename, baud
 
 ##
 ## A green thread that gets the first message on the queue and sends it to the browser
@@ -47,7 +94,7 @@ def serial_listener(sio, q):
 ## A Python thread that stuffs Serial messages into the queue
 ## 
 
-def serial_thread(q):
+def serial_thread(q, filename, baud):
     id_ticker = 0
     def tick(message_type, packet_raw_data, parsed={}):
         nonlocal id_ticker
@@ -63,7 +110,7 @@ def serial_thread(q):
         q.put(message)
 
     print("+ subscribing to serial")
-    reader(tick)
+    reader(filename, baud, tick)
 
 ##
 ## A testing-only green thread that sends random valid messages to the Socket
@@ -141,18 +188,6 @@ def test_serial_listener(sio):
         print(">>>> emitting >>>> ", id_ticker )
         sio.emit('message', msg)
         sio.sleep(0.15)
-        
-
-
-# 
-# Flask-socketio doesn't like multithreaded approach
-# 
-
-q = Queue()
-
-serial_thread = Thread(target=serial_thread, args=(q,))
-serial_thread.daemon = True
-
 
 ##
 ## Entry point
@@ -160,12 +195,18 @@ serial_thread.daemon = True
 
 if __name__ == '__main__':
     print("+ starting bg tasks")
-    args = parser.parse_args()
+
+    q = Queue()
+
     if args.test:
         print("+ TEST MODE: sending fake messages down the tube")
         sio.start_background_task(test_serial_listener, sio)
     else:
+        filename, baud = get_config()
+        serial_thread = Thread(target=serial_thread, args=(q, filename, baud))
+        serial_thread.daemon = True
         serial_thread.start()
         sio.start_background_task(serial_listener, sio, q)
+
     print("+ starting app")
     sio.run(app)
