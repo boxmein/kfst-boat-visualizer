@@ -20,5 +20,5 @@ if ! command -v docker >/dev/null 2>/dev/null; then
   fi
 fi
 
-exec docker run -it --privileged -p 5000:5000 -e "SERIAL_DEVICE=${1:-/dev/ttyUSB0}" -e "BAUDRATE=${2:-57600}" boxmein/kfst-boat-visualizer
+exec docker run -it --device ${1:-/dev/ttyUSB0} -p 5000:5000 -e "SERIAL_DEVICE=${1:-/dev/ttyUSB0}" -e "BAUDRATE=${2:-57600}" boxmein/kfst-boat-visualizer
 
