@@ -110,6 +110,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         }
         // Map (x, y) positions to (x,z) surface
         this.camera.position.set(lastPosition.x, 20, lastPosition.y);
+        // this.camera.lookAt(lastPosition.x, 0, lastPosition.y);
     }
 
     updateBoat(lastPosition: { x: number, y: number }): void {
