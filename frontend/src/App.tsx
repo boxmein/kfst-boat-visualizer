@@ -24,7 +24,7 @@ interface IAppState {
     lastLocation?: ILastLocation;
     points: ILastLocation[];
     status?: string | undefined;
-
+    renderedRawData: React.ReactChild[];
 }
 
 function messageIsSerial(message: IMessage): message is ISerialMessage {
@@ -43,6 +43,7 @@ class App extends PureComponent<{}, IAppState> {
         offline: false,
         points: [],
         status: undefined,
+        renderedRawData: [],
     };
 
     offlineTimeout?: number | null;
@@ -78,7 +79,7 @@ class App extends PureComponent<{}, IAppState> {
         const obs = subscribe();
         this.resetOffline();
         const arrayObs = obs.pipe(
-            scan((acc: IMessage[], current: IMessage): IMessage[] => [...acc.slice(acc.length > MAX_EVENTS ? 1 : 0), current], [] as IMessage[])
+            scan((acc: IMessage[], current: IMessage): IMessage[] => [current, ...acc.slice(-acc.length > MAX_EVENTS ? 1 : 0)], [] as IMessage[])
         );
 
         const positionMessages$ = arrayObs.pipe(
@@ -108,8 +109,9 @@ class App extends PureComponent<{}, IAppState> {
             }
         });
 
-        arrayObs.subscribe((eventLog) => {
+        arrayObs.subscribe((eventLog: IMessage[]) => {
             this.resetOffline();
+            this.updateRenderedData(eventLog);
             this.setState({ log: eventLog });
         });
 
@@ -119,17 +121,35 @@ class App extends PureComponent<{}, IAppState> {
     }
      statusDisplay(){
         if(this.state.status){
-            return this.state.status
+            return this.state.status;
         }
         if(this.state.offline){
-            return "offline"
+            return "offline";
         }
         return '';
     }
+
+    updateRenderedData(log: IMessage[]) {
+        const renderedRawData = [];
+
+        for (let i = 0; i < Math.min(100, log.length); i += 1) {
+            const item = log[i];
+            if (!messageIsSerial(item)) {
+                continue;
+            }
+            renderedRawData[i] = (
+                <div className="message_serial" key={item._id}>
+                    {item.raw_data}
+                </div>
+            );
+        }
+
+        this.setState({ renderedRawData });
+    }
+
     render() {
         const last = this.state.lastLocation;
         const points = this.state.points;
-
 
         return (
             <div className="App">
@@ -149,11 +169,7 @@ class App extends PureComponent<{}, IAppState> {
                         </div>
                         <div className="message_log">
                             <h2>Raw Packets</h2>
-                            {this.state.log.map((item: IMessage) => {
-                                return <div className="message_serial" key={item._id}>
-                                    {messageIsSerial(item) ? item.raw_data : ''}
-                                </div>;
-                            })}
+                            {this.state.renderedRawData}
                         </div>
                     </div>
                     <div className="right column">

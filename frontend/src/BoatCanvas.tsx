@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import * as THREE from 'three';
 import { BufferGeometry } from 'three';
+import { OrbitControls } from 'three-orbitcontrols-ts';
 
 const BOAT_CANVAS_WIDTH = 800;
 const BOAT_CANVAS_HEIGHT = 800;
@@ -42,6 +43,9 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
     boat: THREE.Mesh | null = null;
     /** Holds the desired location */
     desiredLocation: THREE.Mesh | null = null;
+    desiredLine: THREE.Line | null = null;
+
+    controls: OrbitControls | null = null;
 
     constructor(props: IBoatCanvasProps) {
         super(props);
@@ -92,16 +96,16 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         const positions = geometry.attributes.position.array as Float32Array;
 
         // Place points relative to origin (origin will be boat)
-        for (let i = 0; i < renderedPoints; i += 1) {
+        for (let i = 0; i < renderedPoints; i += 3) {
             const { x, y } = points[i];
             // Map (x,y) points to (x,z) surface
-            positions[i] = x - lastPosition.x;
+            positions[i] = x; // x - lastPosition.x if using relative position
             positions[i + 1] = 0;
-            positions[i + 2] = y - lastPosition.y;
+            positions[i + 2] = y; // y - lastPosition.y if using relative position
         }
 
-        // Set origin to boat
-        this.points.position.set(lastPosition.x, 0, lastPosition.y);
+        // REL: Set origin to boat
+        // this.points.position.set(lastPosition.x, 0, lastPosition.y);
 
         // Mark the object as dirty
         (geometry.attributes.position as any).needsUpdate = true;
@@ -117,7 +121,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         }
         // Map (x, y) positions to (x,z) surface
         this.camera.position.set(lastPosition.x, CAMERA_Y, lastPosition.y);
-        // this.camera.lookAt(lastPosition.x, 0, lastPosition.y);
+        // this.controls.update();
     }
 
     updateBoat(lastPosition: { x: number, y: number, phi: number }): void {
@@ -125,7 +129,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
             return;
         }
         this.boat.position.set(lastPosition.x, 0, lastPosition.y);
-        this.boat.rotation.set(0, lastPosition.phi, 0);
+        this.boat.rotation.set(0, /*lastPosition.phi */ 0, 0);
     }
     
     updateDesiredLocation(x: number, y: number): void {
@@ -133,6 +137,24 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
             return;
         }
         this.desiredLocation.position.set(x, 0, y);
+    }
+
+    updateDesiredLine(lastPosition: { x: number, y: number, sp_x?: number, sp_y?: number }): void {
+        if (!this.desiredLine) {
+            return;
+        }
+
+        const geometry = this.desiredLine.geometry as BufferGeometry;
+        const positions = geometry.attributes.position.array as Float32Array;
+
+        positions[3 * 0 + 0] = lastPosition.x;
+        positions[3 * 0 + 2] = lastPosition.y;
+        if (lastPosition.sp_x && lastPosition.sp_y) {
+            positions[3 * 1 + 0] = lastPosition.sp_x;
+            positions[3 * 1 + 2] = lastPosition.sp_y;
+        }
+
+        (geometry.attributes.position as any).needsUpdate = true;
     }
 
     /**
@@ -152,12 +174,12 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         this.ref.appendChild(this.renderer.domElement);
 
         // Set up the point cloud to render history points
-
         const pointArray = new Float32Array(MAX_POINTS * 3);
         const geometry = new THREE.BufferGeometry();
         geometry.addAttribute("position", new THREE.BufferAttribute(pointArray, 3));
 
         this.points = new THREE.Points(geometry);
+        this.points.frustumCulled = false;
         this.scene.add(this.points);
 
         // Set up the camera
@@ -176,13 +198,36 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         this.desiredLocation = new THREE.Mesh( desiredLocation, desiredLocationMaterial );
         this.scene.add(this.desiredLocation);
 
-        // Set up a grid
-        const grid = new THREE.GridHelper(1000, 1000 / 4);
-        this.scene.add(grid);
-
         // Set up x-y-z axis lines
         const axes = new THREE.AxesHelper(1000);
         this.scene.add(axes);
+
+        // Set up a line between desired point and boat
+        const desiredLinePoints = new Float32Array(2 * 3);
+        const desiredLineGeometry = new THREE.BufferGeometry();
+        desiredLineGeometry.addAttribute("position", new THREE.BufferAttribute(desiredLinePoints, 3));
+        this.desiredLine = new THREE.Line(desiredLineGeometry);
+
+        this.desiredLine.frustumCulled = false;
+
+        this.scene.add(this.desiredLine);
+
+        // Set up the ground - an ocean
+
+        const ground = new THREE.PlaneGeometry(10000, 10000);
+        const groundTexture = new THREE.TextureLoader().load('/water.jpg', (texture) => {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.offset.set( 0, 0 );
+            texture.repeat.set( 1000, 1000 );
+        });
+        const groundMaterial = new THREE.MeshBasicMaterial({ map: groundTexture, side: THREE.DoubleSide });
+        const groundMesh = new THREE.Mesh(ground, groundMaterial);
+        groundMesh.position.set(0, -1, 0);
+        groundMesh.rotation.set(Math.PI / 2, 0, 0);
+        this.scene.add(groundMesh);
+
+        // Set up orbit controls
+        this.controls = new OrbitControls(this.camera);
 
         // Start the animate loop
         window.requestAnimationFrame(this.animate);
@@ -200,6 +245,8 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         if (this.props.lastLocation && this.props.lastLocation !== prevProps.lastLocation) {
             this.updateCamera(this.props.lastLocation);
             this.updateBoat(this.props.lastLocation);
+
+            this.updateDesiredLine(this.props.lastLocation);
 
             if (this.props.lastLocation.sp_x && this.props.lastLocation.sp_y) {
                 this.updateDesiredLocation(this.props.lastLocation.sp_x, this.props.lastLocation.sp_y);
