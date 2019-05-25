@@ -8,4 +8,5 @@ ADD ./server/ /srv/server/
 ADD frontend/build/ /srv/server/static/
 ADD deployment/start-in-docker.sh /srv/start.sh
 WORKDIR /srv/
+RUN pipenv install --ignore-pipfile
 CMD ["./start.sh"]
