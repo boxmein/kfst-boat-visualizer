@@ -6,19 +6,12 @@ This implementation is a web app based on Create React App as well as Python 3, 
 
 ## Supported operating systems
 
-- Raspbian
-- Linux
-- macOS
-
-## Prerequisites
-
-- Node.js https://nodejs.org
-- Yarn https://yarnpkg.com
-- Python 3
-- Pip
-- Pipenv (pip install --user pipenv)
+- Raspbian Stretch (Raspberry Pi) - production mode
+- Linux, macOS - developer mode
 
 ## Usage
+
+### Prerequisites on Raspberry Pi / Deployment Machine
 
 **First**, make sure that the Base Station and Programmer are attached to your computer 
 via USB. "m.1" should be powered on from battery, and "kana_1" and "iris_1" should be
@@ -32,19 +25,37 @@ the right serial device. The default baud rate is 57200.
 non-root read access to it. To check that, do `ls -l /dev/ttyX` where the X is the right serial device.
 The permissions should allow your user or group to read the serial device.
 
-### Starting in Production
+To add these permissions, check the group of the tty file (most likely dialout), add the group to your user and
+make a new terminal / relogin.
 
-To start in production, run the following command:
+The access requirement can be worked around by running as Root.
+
+### Starting on Raspberry Pi / Production Mode
+
+In Production, the visualizer runs as a Docker image started by one shell script.
+
+Without downloading the entire repository, download only the `deployment/start.sh` script
+and run it on the Raspberry Pi:
 
     ./deployment/run.sh
 
+After starting, it will spew log entries with the serial messages received.
+
+To view the webpage, open http://raspberrypi.local:5000 on your work computer (assuming raspberrypi is the hostname),
+or http://localhost:5000 on the Raspberry Pi itself.
+
 ### Starting Developer Mode
 
-A few more things have to be checked:
+The developer mode has the following prerequisites:
 
-**First**, make sure you have the prerequisites installed.
+- Node.js https://nodejs.org
+- Yarn https://yarnpkg.com
+- Python 3
+- Pip
 
-**Second**: use the following script to start up everything in developer mode:
+To work on the source code of the visualizer, make modifications etc, you should run it in Developer Mode.
+
+Use the following script to start up everything in developer mode:
 
     ./sh/start.sh
 
@@ -74,7 +85,7 @@ To start that mode:
 Then use the following command to run the backend:
 
 ```bash
-sudo $(which pipenv) run python3 server/main.py --test
+sudo python3 server/main.py --test
 ```
 
 And these commands to run the frontend separately:
@@ -92,7 +103,6 @@ The configuration file looks like this:
 serial_device: 
   file: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AH00QNMG-if00-port0
   baudrate: 57600 # NOTE: the radio is by default @ 57600 baud
-
 ```
 
 All keys are mandatory.
