@@ -97,6 +97,28 @@ yarn start
 
 ## Configuration
 
+### With docker / prod mode
+
+The production mode can be configured by two command-line arguments.
+
+To change the serial device and baud rate that the radio listener is connected to:
+
+```
+./start.sh SERIAL_DEVICE BAUD_RATE
+```
+
+### In developer mode
+
+In developer mode, it's possible to configure the backend like this:
+
+```
+python3 server/main.py -b BAUD_RATE -d SERIAL_DEVICE
+```
+
+### In developer mode, with a config file
+
+In developer mode, as a fallback to the command line flags, a configuration file can be used and the CLI flags can be left out completely.
+
 The configuration file looks like this:
 
 ```yaml
