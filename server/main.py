@@ -222,5 +222,5 @@ if __name__ == '__main__':
         serial_thread.start()
         sio.start_background_task(serial_listener, sio, q)
 
-    print("+ starting app")
-    sio.run(app)
+    print("+ starting app on 0.0.0.0:5000")
+    sio.run(app, host='0.0.0.0', port=5000)
