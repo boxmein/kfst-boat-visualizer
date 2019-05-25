@@ -4,11 +4,12 @@ before_install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 script:
+  - cd frontend; yarn; yarn build; cd ..
   - docker build -t boxmein/kfst-boat-visualizer .
 
 deploy:
   provider: script
   script:
-    - echo "wow deployment"
+    - bash sh/ci-deploy-to-docker-hub.sh
   on:
     branch: master
