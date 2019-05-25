@@ -1,0 +1,14 @@
+services:
+  - docker
+before_install:
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+script:
+  - docker build -t boxmein/kfst-boat-visualizer .
+
+deploy:
+  provider: script
+  script:
+    - echo "wow deployment"
+  on:
+    branch: master
