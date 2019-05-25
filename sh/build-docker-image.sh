@@ -12,6 +12,7 @@ fi
 
 # Build fresh frontend static files
 cd frontend
+yarn
 yarn build
 cd ..
 
