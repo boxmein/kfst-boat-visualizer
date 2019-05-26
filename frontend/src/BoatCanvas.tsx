@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import * as THREE from 'three';
 import { BufferGeometry } from 'three';
-import { OrbitControls } from 'three-orbitcontrols-ts';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const BOAT_CANVAS_WIDTH = 800;
 const BOAT_CANVAS_HEIGHT = 800;
@@ -32,7 +33,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
     /** Holds A HTML element to put the webgl canvas into. */
     ref: Element | null = null;
     /** Holds a three.js canvas renderer */
-    renderer: THREE.Renderer | null = null;
+    renderer: THREE.WebGLRenderer | null = null;
     /** Holds the camera used to render this boat canvas */
     camera: THREE.Camera | null = null;
     /** Holds the Scene that will be rendered */
@@ -40,11 +41,11 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
     /** Holds the point cloud */
     points: THREE.Points | null = null;
     /** Holds the boat */
-    boat: THREE.Mesh | null = null;
+    boat: THREE.Object3D | null = null;
     /** Holds the desired location */
-    desiredLocation: THREE.Mesh | null = null;
-    desiredLine: THREE.Line | null = null;
+    desiredLocation: THREE.Object3D | null = null;
 
+    desiredLine: THREE.Line | null = null;
     controls: OrbitControls | null = null;
 
     constructor(props: IBoatCanvasProps) {
@@ -129,7 +130,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
             return;
         }
         this.boat.position.set(lastPosition.x, 0, lastPosition.y);
-        this.boat.rotation.set(0, /*lastPosition.phi */ 0, 0);
+        this.boat.rotation.set(0, lastPosition.phi - (Math.PI), 0);
     }
     
     updateDesiredLocation(x: number, y: number): void {
@@ -173,61 +174,101 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         }
         this.ref.appendChild(this.renderer.domElement);
 
-        // Set up the point cloud to render history points
-        const pointArray = new Float32Array(MAX_POINTS * 3);
-        const geometry = new THREE.BufferGeometry();
-        geometry.addAttribute("position", new THREE.BufferAttribute(pointArray, 3));
-
-        this.points = new THREE.Points(geometry);
-        this.points.frustumCulled = false;
-        this.scene.add(this.points);
+        // Configure the renderer
+        this.renderer.gammaOutput = true;
+        this.renderer.gammaFactor = 2.2;
 
         // Set up the camera
         this.camera.position.y = CAMERA_Y;
         this.camera.lookAt(0, 0, 0);
 
+        // Set up the point cloud to render history points
+        {
+            const pointArray = new Float32Array(MAX_POINTS * 3);
+            const geometry = new THREE.BufferGeometry();
+            geometry.addAttribute("position", new THREE.BufferAttribute(pointArray, 3));
+
+            this.points = new THREE.Points(geometry);
+            this.points.frustumCulled = false;
+            this.scene.add(this.points);
+        }
+
         // Set up the boat
-        const boat = new THREE.BoxGeometry( 1, 1, 1 );
-        const boatMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        this.boat = new THREE.Mesh( boat, boatMaterial );
-        this.scene.add(this.boat);
 
-        // Set up the "desired location"
-        const desiredLocation = new THREE.BoxGeometry( 1, 1, 1 );
-        const desiredLocationMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-        this.desiredLocation = new THREE.Mesh( desiredLocation, desiredLocationMaterial );
-        this.scene.add(this.desiredLocation);
-
-        // Set up x-y-z axis lines
-        const axes = new THREE.AxesHelper(1000);
-        this.scene.add(axes);
-
-        // Set up a line between desired point and boat
-        const desiredLinePoints = new Float32Array(2 * 3);
-        const desiredLineGeometry = new THREE.BufferGeometry();
-        desiredLineGeometry.addAttribute("position", new THREE.BufferAttribute(desiredLinePoints, 3));
-        this.desiredLine = new THREE.Line(desiredLineGeometry);
-
-        this.desiredLine.frustumCulled = false;
-
-        this.scene.add(this.desiredLine);
+        // Start loading boat 3D model
+        const loader = new GLTFLoader();
+        loader.load('/boat/scene.gltf', (gltf) => {
+            console.log('Boat loaded', gltf);
+            if (typeof this === 'object' && this.scene) {
+                gltf.scene.scale.set(0.01, 0.01, 0.01);
+                this.boat = gltf.scene;
+                this.scene.add(this.boat);
+            }
+        }, undefined, (error) => {
+            console.error(error);
+        });
 
         // Set up the ground - an ocean
+        {
+            const ground = new THREE.PlaneGeometry(10000, 10000);
+            const groundTexture = new THREE.TextureLoader().load('/water.jpg', (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.offset.set( 0, 0 );
+                texture.repeat.set( 1000, 1000 );
+            });
+            const groundMaterial = new THREE.MeshLambertMaterial({ map: groundTexture, side: THREE.BackSide });
+            const groundMesh = new THREE.Mesh(ground, groundMaterial);
+            groundMesh.position.set(0, -1, 0);
+            groundMesh.rotation.set(Math.PI / 2, 0, 0);
+            this.scene.add(groundMesh);
+        }
 
-        const ground = new THREE.PlaneGeometry(10000, 10000);
-        const groundTexture = new THREE.TextureLoader().load('/water.jpg', (texture) => {
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.offset.set( 0, 0 );
-            texture.repeat.set( 1000, 1000 );
-        });
-        const groundMaterial = new THREE.MeshBasicMaterial({ map: groundTexture, side: THREE.DoubleSide });
-        const groundMesh = new THREE.Mesh(ground, groundMaterial);
-        groundMesh.position.set(0, -1, 0);
-        groundMesh.rotation.set(Math.PI / 2, 0, 0);
-        this.scene.add(groundMesh);
+        // Set up lighting
+        {
+            // Ambient 
+            this.scene.add(new THREE.AmbientLight(0xA0A0A7, 0.5));
+        }
+        {
+            // Directional
+            const directionalLight = new THREE.DirectionalLight(0xfffffa, 2);
+            directionalLight.position.set(250, 200, 250);
+            // directionalLight.castShadow = true;
+            directionalLight.target.position.set(1, 0, 0);
+            this.scene.add(directionalLight);
+        }
+
+        // Set up the "desired location"
+        {
+            const desiredLocation = new THREE.BoxGeometry( 1, 1, 1 );
+            const desiredLocationMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
+            this.desiredLocation = new THREE.Mesh( desiredLocation, desiredLocationMaterial );
+            this.scene.add(this.desiredLocation);    
+        }
+        
+        // Set up x-y-z axis lines
+        {
+            const axes = new THREE.AxesHelper(1000);
+            this.scene.add(axes);
+        }
+
+        // Set up a line between desired point and boat
+        {
+            const desiredLinePoints = new Float32Array(2 * 3);
+            const desiredLineGeometry = new THREE.BufferGeometry();
+            desiredLineGeometry.addAttribute("position", new THREE.BufferAttribute(desiredLinePoints, 3));
+            this.desiredLine = new THREE.Line(desiredLineGeometry);
+            this.desiredLine.frustumCulled = false;
+            this.scene.add(this.desiredLine);
+        }
 
         // Set up orbit controls
-        this.controls = new OrbitControls(this.camera);
+        {
+            this.controls = new OrbitControls(this.camera);
+            this.controls.enabled = false;
+            this.controls.enableZoom = true;
+            this.controls.enablePan = true;
+            this.controls.enableKeys = true;
+        }
 
         // Start the animate loop
         window.requestAnimationFrame(this.animate);
