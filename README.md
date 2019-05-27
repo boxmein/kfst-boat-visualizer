@@ -159,6 +159,21 @@ All keys are mandatory.
 
 The serial device is expected to exist and be readable to the user.
 
+## Architecture
+
+The architecture of the code is here:
+
+![image](https://user-images.githubusercontent.com/358714/58440868-07034900-80e6-11e9-8f18-93d7f2275f72.png)
+
+The code for the Frontend is in the `frontend` folder.
+
+The code for the Backend is in the `backend` folder.
+
+When preparing for production, a Docker image is built via `sh/build-docker-image.sh` and deployed to the cloud with `docker push`.
+
+When running in production, the Docker image is downloaded and started. It contains everything needed to use the visualizer.
+
+
 ## WebSocket message types
 
 Messages are sent down over WebSocket or other Socket.IO transports in JSON.
