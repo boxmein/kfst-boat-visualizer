@@ -4,3 +4,4 @@ class Packet:
     self.message_type = 0x00
     self.parsed = {}
     self.raw = b''
+    self.valid = True

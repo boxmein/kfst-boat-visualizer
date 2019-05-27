@@ -83,6 +83,16 @@ h4{
   white-space: nowrap;
 }
 
+.message_serial.invalid {
+  color: red;
+}
+
+.message_serial.invalid:after {
+  display: inline;
+  content: ' (INVALID)';
+  font-style: italic;
+}
+
 
 .right{
   min-width: 800px;

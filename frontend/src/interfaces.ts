@@ -9,6 +9,7 @@ export interface ISerialMessage {
     msg: number;
     raw_data: string;
     parsed: object;
+    valid: boolean;
 }
 
 export interface IStatusMessage {

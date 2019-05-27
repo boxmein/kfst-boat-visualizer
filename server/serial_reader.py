@@ -1,5 +1,7 @@
 import time
 import serial
+import sys
+import traceback
 
 from packet_parser import parse_packet
 
@@ -31,6 +33,8 @@ def start_serial_listen(filename, baudrate, emit_packet, emit_status):
       emit_status('Error connecting to serial device ' + filename)
       print("> serial reader: serial connection failed")
       print(e)
+      ei = sys.exc_info()
+      print(traceback.print_tb(ei[2]))
       time.sleep(3)
 
 def parse_packets(frames):
@@ -142,7 +146,7 @@ def emit_packets(packets, emit_packet):
     return
 
   for packet in packets:
-    emit_packet(packet.message_type, packet.raw, packet.parsed)
+    emit_packet(packet.message_type, packet.raw, packet.parsed, packet.valid)
 
 def reader(serial_device, baudrate, emit_packet, emit_status):
   print("> serial reader: init")

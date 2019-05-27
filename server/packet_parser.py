@@ -1,7 +1,11 @@
 from packet import Packet
 from struct import unpack
+import crc16
 
-#   3: 
+
+def validate_crc(raw_packet, crc): 
+  crc_calculated = crc16.crc16xmodem(bytes(raw_packet[:-2]))
+  return crc == crc_calculated
 
 # 
 # Decode 0x01 messages: State
@@ -28,8 +32,9 @@ def decode_state_msg(raw_packet):
     'sp_y': unpacked[6]
   }
 
+  crc = ((int.from_bytes(unpacked[7], 'little') & 0xff) << 8) | (int.from_bytes(unpacked[8], 'little') & 0xff)
+  pkt.valid = validate_crc(raw_packet, crc)
   pkt.parsed = state_msg
-
   return pkt
 
 # 
@@ -53,6 +58,8 @@ def decode_staterq_msg(raw_packet):
     'node_id': int.from_bytes(unpacked[2], 'little')
   }
 
+  crc = ((int.from_bytes(unpacked[3], 'little') & 0xff) << 8) | (int.from_bytes(unpacked[4], 'little') & 0xff)
+  pkt.valid = validate_crc(raw_packet, crc)
   pkt.parsed = staterq_msg
 
   return pkt
@@ -80,6 +87,9 @@ def decode_control_msg(raw_packet):
     'u': unpacked[4]
   }
 
+  crc = ((int.from_bytes(unpacked[5], 'little') & 0xff) << 8) | (int.from_bytes(unpacked[6], 'little') & 0xff)
+
+  pkt.valid = validate_crc(raw_packet, crc)
   pkt.parsed = control_msg
 
   return pkt
@@ -94,6 +104,8 @@ def decode_user_msg(raw_packet):
   pkt = Packet()
   pkt.message_type = 0x04
   pkt.raw = raw_packet
+  crc = ((raw_packet[-2] & 0xff) << 8) | (raw_packet[-1] & 0xff)
+  pkt.valid = validate_crc(raw_packet, crc)
 
   return pkt
 

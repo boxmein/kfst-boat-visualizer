@@ -10,6 +10,8 @@ from flask_socketio import SocketIO
 from serial_reader import reader
 from config import load_config
 
+import os
+
 ##
 ## Command line arguments
 ##
@@ -31,6 +33,11 @@ sio = SocketIO(app)
 @app.route('/')
 def indexpage():
     return app.send_static_file('index.html')
+
+@app.route('/restart', methods=['POST'])
+def restart():
+    os.system('docker restart $(docker ps | grep kfst-boat-visualizer | awk "{ print $1 }"')
+
 
 ##
 ## Configuration loader
@@ -97,7 +104,7 @@ def serial_listener(sio, q):
 
 def serial_thread(q, filename, baud):
     id_ticker = 0
-    def tick(message_type, packet_raw_data, parsed={}):
+    def tick(message_type, packet_raw_data, parsed={}, valid=True):
         nonlocal id_ticker
         id_ticker += 1
 
@@ -106,7 +113,8 @@ def serial_thread(q, filename, baud):
             'type': 'serial',
             'msg': message_type,
             'raw_data': packet_raw_data.hex(),
-            'parsed': parsed
+            'parsed': parsed,
+            'valid': valid
         }
         q.put(message)
 

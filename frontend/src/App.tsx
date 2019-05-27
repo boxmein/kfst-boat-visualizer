@@ -138,7 +138,7 @@ class App extends PureComponent<{}, IAppState> {
                 continue;
             }
             renderedRawData[i] = (
-                <div className="message_serial" key={item._id}>
+                <div className={`message_serial${!item.valid ? ' invalid' : ''}`} key={item._id}>
                     {item.raw_data}
                 </div>
             );

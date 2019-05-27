@@ -3,3 +3,4 @@ flask-socketio
 pyserial
 pyyaml
 eventlet
+crc16
