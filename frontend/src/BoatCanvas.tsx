@@ -62,6 +62,10 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
         this.animate = this.animate.bind(this);
     }
 
+    deg2rad(deg: number): number {
+        return (deg / 360.) * 2 * Math.PI;
+    }
+
     /**
      * Calls WebGL render and loops forever.
      * Called every animation frame.
@@ -130,7 +134,7 @@ export class BoatCanvas extends PureComponent<IBoatCanvasProps> {
             return;
         }
         this.boat.position.set(lastPosition.x, 0, lastPosition.y);
-        this.boat.rotation.set(0, lastPosition.phi - (Math.PI), 0);
+        this.boat.rotation.set(0,  (Math.PI / 2.) - this.deg2rad(lastPosition.phi), 0);
     }
     
     updateDesiredLocation(x: number, y: number): void {
