@@ -20,5 +20,11 @@ if ! command -v docker >/dev/null 2>/dev/null; then
   fi
 fi
 
+if [[ "$UPDATE" == "true" ]]; then
+  echo "Updating to latest version..."
+  docker pull boxmein/kfst-boat-visualizer:latest
+fi
+
+echo "Starting visualizer. Open http://localhost:5000 to see the result."
 exec docker run -it --device ${1:-/dev/ttyUSB0} -p 5000:5000 -e "SERIAL_DEVICE=${1:-/dev/ttyUSB0}" -e "BAUDRATE=${2:-57600}" boxmein/kfst-boat-visualizer
 
