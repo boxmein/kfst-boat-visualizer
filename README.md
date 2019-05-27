@@ -34,15 +34,40 @@ The access requirement can be worked around by running as Root.
 
 In Production, the visualizer runs as a Docker image started by one shell script.
 
-Without downloading the entire repository, download only the `deployment/start.sh` script
-and run it on the Raspberry Pi:
+Without downloading the entire repository, download only the [deployment/start.sh script](https://github.com/boxmein/kfst-boat-visualizer/blob/master/deployment/start.sh)
+and run it on the Raspberry Pi.
 
-    ./deployment/run.sh
+To download automatically, run these commands:
 
-After starting, it will spew log entries with the serial messages received.
+    wget -O start.sh https://raw.githubusercontent.com/boxmein/kfst-boat-visualizer/master/deployment/start.sh
+    chmod +x start.sh
 
-To view the webpage, open http://raspberrypi.local:5000 on your work computer (assuming raspberrypi is the hostname),
-or http://localhost:5000 on the Raspberry Pi itself.
+To run the visualizer:
+
+    ./start.sh
+
+To view the visualizer, open http://localhost:5000 on the Raspberry Pi.
+
+The same visualizer can be viewed from the LAN by using a web browser to navigate to (raspberry pi IP):5000.
+
+If the Raspberry Pi is connected via ethernet, use this command to get the LAN IP address:
+
+```
+ifconfig eth0 | grep inet
+```
+
+If the Raspberry Pi is connected via wlan, use this command to get the Wi-Fi IP address:
+
+```
+ifconfig wlan0 | grep inet
+```
+
+#### Updating to latest version
+
+When the visualizer has been updated, you can download the latest version using the same start script:
+
+    UPDATE=true ./start.sh
+
 
 ### Starting Developer Mode
 
