@@ -2,6 +2,9 @@
 
 Cyberphysical systems class task: visualizing boat movements in a graphical interface as well as logging control messages
 
+![image](https://user-images.githubusercontent.com/358714/58440743-0cac5f00-80e5-11e9-8a8e-3b24efc3b5df.png)
+
+
 This implementation is a web app based on Create React App as well as Python 3, Flask and Socket.IO.
 
 ## Supported operating systems
