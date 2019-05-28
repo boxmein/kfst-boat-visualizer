@@ -2,6 +2,9 @@
 
 Cyberphysical systems class task: visualizing boat movements in a graphical interface as well as logging control messages
 
+![image](https://user-images.githubusercontent.com/358714/58440743-0cac5f00-80e5-11e9-8a8e-3b24efc3b5df.png)
+
+
 This implementation is a web app based on Create React App as well as Python 3, Flask and Socket.IO.
 
 ## Supported operating systems
@@ -155,6 +158,21 @@ serial_device:
 All keys are mandatory.
 
 The serial device is expected to exist and be readable to the user.
+
+## Architecture
+
+The architecture of the code is here:
+
+![image](https://user-images.githubusercontent.com/358714/58440868-07034900-80e6-11e9-8f18-93d7f2275f72.png)
+
+The code for the Frontend is in the `frontend` folder.
+
+The code for the Backend is in the `backend` folder.
+
+When preparing for production, a Docker image is built via `sh/build-docker-image.sh` and deployed to the cloud with `docker push`.
+
+When running in production, the Docker image is downloaded and started. It contains everything needed to use the visualizer.
+
 
 ## WebSocket message types
 
