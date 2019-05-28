@@ -158,7 +158,10 @@ The serial device is expected to exist and be readable to the user.
 
 ## WebSocket message types
 
-Messages are sent down over WebSocket or other Socket.IO transports in JSON.
+Messages are passed to the Serial Listener via a serial interface. They're decoded from their binary format and structured into
+a JSON message for easier parsing on the frontend.
+
+These messages are sent down over WebSocket or other Socket.IO transports in JSON.
 
 The frontend automatically connects to the endpoint and starts listening to the
 messages in App.tsx.
@@ -192,13 +195,16 @@ A few extra fields are added:
 msg: number
 raw_data: string
 parsed: object
+valid: boolean
 ```
 
 Where msg is the message type (1...4), 
 
 raw_data is the hex-encoded serial message received,
 
-parsed is the parsed "meaning" from the serial message.
+parsed is the parsed "meaning" from the serial message,
+
+valid is true when the CRC check passed for the received message and false when it did not.
 
 #### Type 1 - State Message
 
@@ -209,6 +215,7 @@ The state message announces the position, rotation of the boat.
     "type": "serial",
     "msg": 1,
     "raw_data": "aa010000000000000000a62bc3440040bcc40080bb44bdcb",
+    "valid": true,
     "parsed": { 
         "x": 0,
         "y": 0,
@@ -228,8 +235,27 @@ The state request is a node asking for the state of another node.
     "type": "serial",
     "msg": 2,
     "raw_data": "aa02010c1e",
+    "valid": true,
     "parsed": {
         "node_id": 1
+    }
+}
+```
+
+#### Type 3 - Serial Control Message
+
+The control message is encoded as such:
+
+```json
+{
+    "type": "serial",
+    "msg": 3,
+    "raw_data": "aa030102008089432cc9",
+    "valid": true,
+    "parsed": {
+        "node_id": 1,
+        "type": 2,
+        "u": 1.1804184e-38
     }
 }
 ```
@@ -245,6 +271,7 @@ This message is not decoded and may be cut off wrong - no predefined length is a
     "type": "serial",
     "msg": 4,
     "raw_data": "aa04020101dbab",
+    "valid": true,
     "parsed": {}
 }
 ```
